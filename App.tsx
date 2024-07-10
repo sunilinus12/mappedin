@@ -1,8 +1,9 @@
-import React, {useRef} from 'react';
-import {LogBox, SafeAreaView} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Alert, LogBox, SafeAreaView} from 'react-native';
 import {
   MapViewStore,
   MappedinDestinationSet,
+  MappedinLocation,
   MiMapView,
 } from '@mappedin/react-native-sdk';
 
@@ -18,56 +19,40 @@ const options = {
 
 const App: React.FC = () => {
   const mapView = useRef<MapViewStore>(null);
+  const [destination, setDestination] = React.useState<MappedinLocation>();
+  const [departure, setDeparture] = React.useState<MappedinLocation>();
+
+  const drawDirections = async () => {
+    if (!departure || !destination) return;
+    const directions_ = await departure?.directionsTo(destination);
+    mapView.current?.Journey.draw(directions_);
+    // const directions = await departure.directionsTo(destination);
+    // console.log(directions);
+    // mapView.current?.Journey.draw(directions);
+  };
+  useEffect(() => {
+    drawDirections();
+  }, [departure, destination]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <MiMapView
         style={{flex: 1}}
-        // making labels interactive
-        // onFirstMapLoaded={() => {
-        //   mapView.current?.FloatingLabels.labelAllLocations({
-        //     interactive: true,
-        //   });
-        // }}
-        onFirstMapLoaded={() => {
-          const departure = mapView.current?.venueData?.locations.find(
-            location => location.name === 'ThinkKitchen',
-          )!;
-          const Dronology = mapView.current?.venueData?.locations.find(
-            location => location.name === 'White Barn',
-          )!;
-          const target = mapView.current?.venueData?.locations.find(
-            location => location.name === 'One Tooth',
-          )!;
-          if (Dronology ?? target ?? true) return;
-          const direction_ = departure.directionsTo(
-            new MappedinDestinationSet([Dronology]),
-          );
-          mapView.current?.Journey.draw(direction_, {
-            inactivePathOptions: {
-              interactive: true,
-            },
-          });
-          // const directions = departure?.directionsTo(
-          //   new MappedinDestinationSet([
-          //     mapView.current?.venueData?.locations.find(
-          //       location => location.name === 'American Eagle',
-          //     )!,
-          //     mapView.current?.venueData?.locations.find(
-          //       location => location.name === 'Target',
-          //     )!,
-          //   ]),
-          // );
-        }}
-        onClick={({paths}) => {
-          console.log('pathspathspaths', paths);
-
-          paths?.forEach(path => {
-            mapView.current?.Journey.setStepByPath(path);
-          });
-        }}
         key="mappedin"
         options={options}
         ref={mapView}
+        // onClick={({polygons}) => {
+        //   if (polygons.length > 0) {
+        //     mapView.current?.setPolygonColor(polygons[0], '#BF4320');
+        //   }
+        // }}
+        onPolygonClicked={({polygon}) => {
+          if (departure === undefined) {
+            setDeparture(polygon.locations[0]);
+            mapView.current?.setPolygonColor(polygon, 'green');
+          } else {
+            setDestination(polygon.locations[0]);
+          }
+        }}
       />
     </SafeAreaView>
   );
