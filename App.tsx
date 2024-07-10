@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {LogBox, SafeAreaView} from 'react-native';
-import {MapViewStore, MiMapView, Polygon} from '@mappedin/react-native-sdk';
+import {MapViewStore, MiMapView} from '@mappedin/react-native-sdk';
 
 // See Trial API key Terms and Conditions
 // https://developer.mappedin.com/guides/api-keys
@@ -13,9 +13,6 @@ const options = {
 
 const App: React.FC = () => {
   const mapView = useRef<MapViewStore>(null);
-  const [selectedPolygon, setSelectedPolygon] = React.useState<Polygon | null>(
-    null,
-  );
 
   return (
     <SafeAreaView style={{flex: 1}}>
